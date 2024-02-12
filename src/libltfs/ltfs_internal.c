@@ -350,6 +350,7 @@ int ltfs_read_one_label(tape_partition_t partition, struct ltfs_label *label,
 		ltfsmsg(LTFS_ERR, 11179E, ret);
 		goto out_free;
 	}
+	save_xml_label(label->barcode);
 
 	/* check for trailing file mark */
 	nread = tape_read(vol->device, buf, (size_t)bufsize, true, vol->kmi_handle);
@@ -376,6 +377,27 @@ out_free:
 		return -LTFS_LABEL_POSSIBLE_VALID;
 
 	return ret;
+}
+
+/**
+ * Save the buffer of XML labels to a temporary file
+ * @param barcode barcode of the XML label
+ * @return 0 on success, 1 if there's an issue
+ *
+*/
+int save_xml_label(char *barcode)
+{
+		char file_path[100] = "/tmp/failed_xml_label_";
+		strcat(file_path, barcode); 
+		strcat(file_path, ".xml");
+		FILE *file_fd = fopen(file_path, "w+");
+		if (!file_fd) {
+			perror("File opening failed");
+			return -1;
+		}
+		size_t return_value = fwrite(buf, nread, 1, file_fd);
+		fclose(file_fd);
+		return return_value;
 }
 
 /**
