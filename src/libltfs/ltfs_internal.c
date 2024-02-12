@@ -348,9 +348,9 @@ int ltfs_read_one_label(tape_partition_t partition, struct ltfs_label *label,
 	ret = xml_label_from_mem(buf, nread, label);
 	if (ret < 0) {
 		ltfsmsg(LTFS_ERR, 11179E, ret);
+		save_xml_label(buf, nread, label->barcode);
 		goto out_free;
 	}
-	save_xml_label(label->barcode);
 
 	/* check for trailing file mark */
 	nread = tape_read(vol->device, buf, (size_t)bufsize, true, vol->kmi_handle);
@@ -385,7 +385,7 @@ out_free:
  * @return 0 on success, 1 if there's an issue
  *
 */
-int save_xml_label(char *barcode)
+int save_xml_label(char *buf, ssize_t nread, char *barcode)
 {
 		char file_path[100] = "/tmp/failed_xml_label_";
 		strcat(file_path, barcode); 
